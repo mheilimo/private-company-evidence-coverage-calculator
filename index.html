@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Private Company Evidence Coverage Calculator</title>
+  <meta name="description" content="A free, private browser worksheet for mapping evidence coverage across 12 private-company due diligence dimensions.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://mheilimo.github.io/private-company-evidence-coverage-calculator/">
+  <meta property="og:title" content="Private Company Evidence Coverage Calculator">
+  <meta property="og:description" content="Map supported, partial and missing evidence across 12 private-company due diligence dimensions. Nothing leaves your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mheilimo.github.io/private-company-evidence-coverage-calculator/">
+  <meta name="twitter:card" content="summary">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f7f7fb;
+      --muted: #a6a6b3;
+      --panel: rgba(255, 255, 255, 0.055);
+      --line: rgba(255, 255, 255, 0.12);
+      --blue: #879bff;
+      --violet: #bc8cff;
+      --green: #5ed8a3;
+      --amber: #ffc970;
+      --red: #ff8b8b;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(111, 97, 255, 0.24), transparent 34rem),
+        radial-gradient(circle at 92% 22%, rgba(188, 140, 255, 0.15), transparent 30rem),
+        #09090e;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: inherit; }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 22px 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-weight: 760;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 10px;
+      background: linear-gradient(145deg, rgba(135, 155, 255, 0.35), rgba(188, 140, 255, 0.12));
+    }
+
+    .small-link { color: var(--muted); font-size: 14px; text-underline-offset: 4px; }
+    .small-link:hover { color: var(--ink); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(290px, 0.8fr);
+      gap: 34px;
+      align-items: end;
+      padding: 78px 0 56px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #d9ddff;
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 18px rgba(94, 216, 163, 0.8);
+      content: "";
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 16px 0 18px;
+      font-size: clamp(42px, 7vw, 78px);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .lede {
+      max-width: 720px;
+      margin: 0;
+      color: #c6c6d0;
+      font-size: clamp(17px, 2vw, 20px);
+      line-height: 1.62;
+    }
+
+    .privacy-card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .privacy-card strong { display: block; margin-bottom: 7px; }
+    .privacy-card p { margin: 0; color: var(--muted); line-height: 1.55; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 24px;
+      align-items: start;
+      padding-bottom: 90px;
+    }
+
+    .dimension-list { display: grid; gap: 12px; }
+    .dimension {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 148px;
+      gap: 16px;
+      align-items: center;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.038);
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .dimension:hover { transform: translateY(-1px); border-color: rgba(135, 155, 255, 0.38); }
+    .dimension[data-state="supported"] { background: rgba(94, 216, 163, 0.065); }
+    .dimension[data-state="partial"] { background: rgba(255, 201, 112, 0.06); }
+    .dimension[data-state="missing"] { background: rgba(255, 139, 139, 0.055); }
+
+    .index {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dimension h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -0.02em; }
+    .dimension p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    select {
+      width: 100%;
+      min-height: 43px;
+      padding: 0 36px 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: #15151d;
+    }
+
+    select:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(135, 155, 255, 0.45);
+      outline-offset: 3px;
+    }
+
+    .result {
+      position: sticky;
+      top: 18px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(17, 17, 24, 0.92);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .result-label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.11em; }
+    .score-row { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
+    .score { font-size: 64px; font-weight: 780; letter-spacing: -0.065em; }
+    .score-suffix { color: var(--muted); font-size: 18px; }
+    .meter { height: 9px; margin: 8px 0 18px; overflow: hidden; border-radius: 20px; background: rgba(255, 255, 255, 0.08); }
+    .meter > span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--violet)); transition: width 180ms ease; }
+
+    .counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+    .count { padding: 10px 6px; border: 1px solid var(--line); border-radius: 12px; text-align: center; }
+    .count strong { display: block; font-size: 20px; }
+    .count span { color: var(--muted); font-size: 11px; }
+
+    .gap-title { margin: 0 0 10px; font-size: 14px; }
+    .gap-list { min-height: 70px; margin: 0 0 20px; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .gap-list li + li { margin-top: 4px; }
+
+    .actions { display: grid; gap: 9px; }
+    .button {
+      min-height: 43px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.055);
+      font-weight: 680;
+    }
+    .button:hover { background: rgba(255, 255, 255, 0.1); }
+    .button.primary { border: 0; background: linear-gradient(135deg, #7187ff, #a76ff5); }
+    .button.primary:hover { filter: brightness(1.08); }
+
+    .note { margin: 16px 0 0; color: #81818e; font-size: 11px; line-height: 1.5; }
+
+    .cta {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: center;
+      margin: 0 0 90px;
+      padding: 30px;
+      border: 1px solid rgba(135, 155, 255, 0.28);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(135, 155, 255, 0.12), rgba(188, 140, 255, 0.08));
+    }
+    .cta h2 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 36px); letter-spacing: -0.035em; }
+    .cta p { max-width: 720px; margin: 0; color: var(--muted); line-height: 1.55; }
+    .cta a { display: inline-flex; justify-content: center; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; background: var(--ink); color: #111118; text-decoration: none; font-weight: 760; white-space: nowrap; }
+
+    footer { display: flex; justify-content: space-between; gap: 24px; padding: 26px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 900px) {
+      .hero, .workspace { grid-template-columns: 1fr; }
+      .hero { padding-top: 48px; }
+      .result { position: static; grid-row: 1; }
+      .dimension { grid-template-columns: 40px minmax(0, 1fr); }
+      .dimension select { grid-column: 2; }
+      .cta { grid-template-columns: 1fr; }
+      .cta a { justify-self: start; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 22px, 1180px); }
+      header { align-items: flex-start; }
+      .small-link { text-align: right; }
+      .hero { padding-top: 30px; }
+      h1 { font-size: 44px; }
+      .dimension { padding: 15px; gap: 12px; }
+      .cta { padding: 23px; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="#top" aria-label="Evidence coverage calculator home">
+        <span class="brand-mark" aria-hidden="true">✓</span>
+        Evidence coverage
+      </a>
+      <a class="small-link" href="https://github.com/mheilimo/private-company-evidence-coverage-calculator">View source</a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Free browser worksheet</div>
+          <h1>What does the company file actually support?</h1>
+          <p class="lede">Mark the evidence you have across 12 private-company due diligence dimensions. The worksheet gives you a coverage percentage and a short priority list for the next review.</p>
+        </div>
+        <aside class="privacy-card">
+          <strong>Nothing leaves this browser.</strong>
+          <p>No upload, account, analytics or server-side storage. The result is a working checklist, not a company score or investment recommendation.</p>
+        </aside>
+      </section>
+
+      <section class="workspace" aria-label="Evidence coverage worksheet">
+        <div class="dimension-list" id="dimension-list"></div>
+
+        <aside class="result" aria-live="polite">
+          <div class="result-label">Evidence coverage</div>
+          <div class="score-row"><span class="score" id="score">0</span><span class="score-suffix">/ 100</span></div>
+          <div class="meter" aria-hidden="true"><span id="meter"></span></div>
+          <div class="counts">
+            <div class="count"><strong id="supported-count">0</strong><span>supported</span></div>
+            <div class="count"><strong id="partial-count">0</strong><span>partial</span></div>
+            <div class="count"><strong id="missing-count">12</strong><span>missing</span></div>
+          </div>
+          <h2 class="gap-title">Review first</h2>
+          <ol class="gap-list" id="gap-list"></ol>
+          <div class="actions">
+            <button class="button primary" id="copy-button" type="button">Copy summary</button>
+            <button class="button" id="download-button" type="button">Download JSON</button>
+            <button class="button" id="reset-button" type="button">Reset worksheet</button>
+          </div>
+          <p class="note">Coverage = supported evidence (2 points) plus partial evidence (1 point), divided by the 24 possible points. It deliberately does not estimate quality, probability of success or the DDScore Due Diligence Score.</p>
+        </aside>
+      </section>
+
+      <section class="cta">
+        <div>
+          <h2>Need the structured first pass, not only the checklist?</h2>
+          <p>DDScore analyses private-company materials across these 12 dimensions, checks submitted claims against current public information and surfaces strengths, risks, missing evidence and the next questions. It supports human judgement rather than replacing full due diligence.</p>
+        </div>
+        <a href="https://www.ddscore.ai/for-investor/?utm_source=github-pages&amp;utm_medium=referral&amp;utm_campaign=ddscore-30d-jul-2026&amp;utm_content=evidence-coverage-calculator-a" rel="noopener">See DDScore for investors →</a>
+      </section>
+    </main>
+
+    <footer>
+      <span>Built as a free first-pass worksheet by the DDScore team.</span>
+      <span>Not investment advice. No data collection.</span>
+    </footer>
+  </div>
+
+  <script>
+    "use strict";
+
+    const dimensions = [
+      ["Business Idea", "Problem severity, solution logic and differentiation outside the founder's framing."],
+      ["Offering", "Product maturity, feature defensibility and acknowledged delivery risk."],
+      ["Team", "Verified backgrounds, capability gaps and commitment levels for named members."],
+      ["Market", "TAM and SOM credibility, penetration assumptions, budget and target-segment density."],
+      ["Competitors", "Actual market participants, including material alternatives omitted from the deck."],
+      ["Technology & IP", "Moat strength, replication risk, dependencies, IP ownership and protection claims."],
+      ["Scalability", "Unit economics, infrastructure headroom and constraints that could cap growth."],
+      ["Legal & Regulatory", "Compliance exposure, licences, target-market regulation and jurisdictional constraints."],
+      ["Exit", "Plausible outcomes, acquirer logic, sector comparables and return assumptions."],
+      ["Presentation", "Narrative coherence and consistency across submitted materials and public presence."],
+      ["Financial Critique", "Projection maths, sector benchmarks and bottom-up plausibility of key assumptions."],
+      ["Fundability", "Valuation comparables, coherent use of funds and round-structure risk."],
+    ];
+
+    const state = dimensions.map(() => "missing");
+    const points = { missing: 0, partial: 1, supported: 2 };
+    const list = document.getElementById("dimension-list");
+
+    dimensions.forEach(([name, description], index) => {
+      const article = document.createElement("article");
+      article.className = "dimension";
+      article.dataset.state = "missing";
+      article.innerHTML = `
+        <div class="index">${String(index + 1).padStart(2, "0")}</div>
+        <div><h2>${name}</h2><p>${description}</p></div>
+        <select aria-label="${name} evidence status" data-index="${index}">
+          <option value="missing">Missing</option>
+          <option value="partial">Partial</option>
+          <option value="supported">Supported</option>
+        </select>`;
+      list.appendChild(article);
+    });
+
+    function summaryText() {
+      const score = document.getElementById("score").textContent;
+      const lines = dimensions.map(([name], index) => `${name}: ${state[index]}`);
+      return [
+        `Private-company evidence coverage: ${score}/100`,
+        "",
+        ...lines,
+        "",
+        "This is an evidence-presence checklist, not a company score or investment recommendation.",
+        "https://mheilimo.github.io/private-company-evidence-coverage-calculator/",
+      ].join("\n");
+    }
+
+    function render() {
+      const total = state.reduce((sum, value) => sum + points[value], 0);
+      const score = Math.round((total / (dimensions.length * 2)) * 100);
+      const counts = {
+        supported: state.filter((value) => value === "supported").length,
+        partial: state.filter((value) => value === "partial").length,
+        missing: state.filter((value) => value === "missing").length,
+      };
+      document.getElementById("score").textContent = String(score);
+      document.getElementById("meter").style.width = `${score}%`;
+      document.getElementById("supported-count").textContent = String(counts.supported);
+      document.getElementById("partial-count").textContent = String(counts.partial);
+      document.getElementById("missing-count").textContent = String(counts.missing);
+
+      const gaps = dimensions
+        .map(([name], index) => ({ name, state: state[index] }))
+        .filter((item) => item.state !== "supported")
+        .sort((left, right) => points[left.state] - points[right.state])
+        .slice(0, 5);
+      const gapList = document.getElementById("gap-list");
+      gapList.replaceChildren();
+      if (!gaps.length) {
+        const item = document.createElement("li");
+        item.textContent = "All dimensions have supporting material; review evidence quality next.";
+        gapList.appendChild(item);
+      } else {
+        gaps.forEach((gap) => {
+          const item = document.createElement("li");
+          item.textContent = `${gap.name} — ${gap.state}`;
+          gapList.appendChild(item);
+        });
+      }
+    }
+
+    list.addEventListener("change", (event) => {
+      if (!(event.target instanceof HTMLSelectElement)) return;
+      const index = Number(event.target.dataset.index);
+      state[index] = event.target.value;
+      event.target.closest(".dimension").dataset.state = event.target.value;
+      render();
+    });
+
+    document.getElementById("copy-button").addEventListener("click", async (event) => {
+      await navigator.clipboard.writeText(summaryText());
+      const button = event.currentTarget;
+      button.textContent = "Copied";
+      window.setTimeout(() => { button.textContent = "Copy summary"; }, 1400);
+    });
+
+    document.getElementById("download-button").addEventListener("click", () => {
+      const result = {
+        generatedAt: new Date().toISOString(),
+        score: Number(document.getElementById("score").textContent),
+        meaning: "Evidence-presence coverage only; not a company score or investment recommendation",
+        dimensions: dimensions.map(([name], index) => ({ name, evidence: state[index] })),
+      };
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([`${JSON.stringify(result, null, 2)}\n`], { type: "application/json" }));
+      link.download = "private-company-evidence-coverage.json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    document.getElementById("reset-button").addEventListener("click", () => {
+      state.fill("missing");
+      document.querySelectorAll("select[data-index]").forEach((select) => { select.value = "missing"; });
+      document.querySelectorAll(".dimension").forEach((article) => { article.dataset.state = "missing"; });
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
