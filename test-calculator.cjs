@@ -25,8 +25,9 @@ if (!executablePath) throw new Error("CHROME_PATH is required");
     });
     page.on("pageerror", (error) => errors.push(error.message));
 
-    const fileUrl = pathToFileURL(path.join(__dirname, "index.html")).href;
-    const response = await page.goto(fileUrl, { waitUntil: "load" });
+    const testUrl =
+      process.env.TEST_URL || pathToFileURL(path.join(__dirname, "index.html")).href;
+    const response = await page.goto(testUrl, { waitUntil: "load" });
     if (response) assert.equal(response.status(), 200);
     assert.equal(await page.title(), "Private Company Evidence Coverage Calculator");
     assert.equal(await page.$$eval(".dimension", (items) => items.length), 12);
